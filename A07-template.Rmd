@@ -303,6 +303,24 @@ Our goal here is to recreate [Figure 18.5](https://dtkaplan.github.io/DataComput
 
 ```{r}
 ### My code here
+TripsWithDistances <- Trips %>%
+  inner_join(PairDistances, by = c("sstation", "estation"))
+
+# Plot distribution of ride distances
+ggplot(TripsWithDistances, aes(x = distance)) +
+  geom_density(fill = "blue", alpha = 0.5) +
+  labs(title = "Distribution of Ride Distances",
+       x = "Distance (km)",
+       y = "Density") +
+  theme_minimal()
+
+# Plot distribution of distances between all station pairs
+ggplot(PairDistances, aes(x = distance)) +
+  geom_density(fill = "green", alpha = 0.5) +
+  labs(title = "Distribution of Distances Between Station Pairs",
+       x = "Distance (km)",
+       y = "Density") +
+  theme_minimal()
 
 ```
 
@@ -315,7 +333,13 @@ Look at the variables in `Stations` and `Trips` and explain why `Simple` and `Si
 
 Optional Extra credit answer here.....
 
-
+ggplot() +
+  geom_density(data = TripsWithDistances, aes(x = distance), fill = "blue", alpha = 0.5) +
+  geom_density(data = PairDistances, aes(x = distance), fill = "green", alpha = 0.5) +
+  labs(title = "Overlay of Ride Distances and Station Pair Distances",
+       x = "Distance (km)",
+       y = "Density") +
+  theme_minimal()
 
 
 
