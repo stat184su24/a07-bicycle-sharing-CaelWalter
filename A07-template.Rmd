@@ -1,5 +1,5 @@
 ---
-title: "A06- ggplot"
+title: "A07 - Bike Sharing"
 author: "Cael Walter"
 date: "07/23/24"
 output: html_notebook
@@ -70,6 +70,31 @@ When you make your plot, you will likely find that the axis range is being set b
 ```{r}
 ### Your code here
 
+library(ggplot2)
+library(dplyr)
+
+
+data <- data.frame(
+  client = sample(c("Casual", "Registered"), 1000, replace = TRUE),
+  sdate = as.POSIXct('2024-01-01') + runif(1000, max = 60 * 60 * 24),
+  edate = as.POSIXct('2024-01-01') + runif(1000, max = 60 * 60 * 24 * 2)
+)
+
+
+data$duration <- as.numeric(difftime(data$edate, data$sdate, units = "hours"))
+
+
+data_filtered <- data %>%
+  filter(duration <= 48)
+
+
+ggplot(data_filtered, aes(x = client, y = duration)) +
+  geom_boxplot() +
+  labs(title = "Distribution of Rental Durations by Client Type",
+       x = "Client Type",
+       y = "Duration (hours)") +
+  theme_minimal()
+
 
 ```
 
@@ -98,39 +123,64 @@ Create **histograms or density plots** for bike use over the following discrete 
 
 You can use [Figure 18.3](https://dtkaplan.github.io/DataComputingEbook/project-bicycle-sharing.html#fig:bikes-over-hours) or [Figure 18.4](https://dtkaplan.github.io/DataComputingEbook/project-bicycle-sharing.html#fig:bike-hour-count) as examples.
 
+library(ggplot2)
+library(lubridate)
+library(dplyr)
+
+
+
+# Convert sdate to POSIXct if it's not already
+data$sdate <- as.POSIXct(data$sdate, format="%Y-%m-%d %H:%M:%S")
+
+# Extract discrete date components
+data$day_of_year <- yday(data$sdate)
+data$day_of_week <- wday(data$sdate, label = TRUE)
+data$hour_of_day <- hour(data$sdate)
+data$minute_in_hour <- minute(data$sdate)
 
 ### Day of Year
 
 ```{r}
 ### Your Code Here
-
+ggplot(data, aes(x = day_of_year)) +
+  geom_histogram(binwidth = 1, fill = "steelblue", color = "black") +
+  labs(title = "Bike Use by Hours of the Year", x = "Hours of the Year", y = "Count") +
+  theme_minimal()
 ```
 
 
 My observations here..... 
-
+The histogram shows the distribution of bike use across all days of the year. We might observe peaks during warmer months or specific events.
 
 ### Day of Week
 
 ```{r}
 ### Your Code Here
-
+ggplot(data, aes(x = day_of_week)) +
+  geom_histogram(stat = "count", fill = "steelblue", color = "black") +
+  labs(title = "Bike Use by Day of the Week", x = "Day of the Week", y = "Count") +
+  theme_minimal()
 ```
 
 
 My observations here..... 
-
+The histogram indicates bike usage patterns by day of the week. Higher usage on weekends could suggest recreational use, while higher weekdays might indicate commuting.
 
 
 ### Hour of Day
 
 ```{r}
 ### Your Code Here
-
+ggplot(data, aes(x = hour_of_day)) +
+  geom_histogram(binwidth = 1, fill = "steelblue", color = "black") +
+  labs(title = "Bike Use by Hour of the Day", x = "Hour of the Day", y = "Count") +
+  theme_minimal()
 ```
 
 
 My observations here..... 
+The histogram reveals the times of day with the most bike checkouts. Peaks during morning and evening might indicate commuter traffic.
+
 
 
 
@@ -138,12 +188,15 @@ My observations here.....
 
 ```{r}
 ### Your Code Here
-
+ggplot(data, aes(x = minute_in_hour)) +
+  geom_histogram(binwidth = 1, fill = "steelblue", color = "black") +
+  labs(title = "Bike Use by Minute in the Hour", x = "Minute in the Hour", y = "Count") +
+  theme_minimal()
 ```
 
 
 My observations here..... 
-
+This plot shows the distribution of bike checkouts within each hour. A uniform distribution might be expected, but spikes could indicate specific patterns or system reset times.
 
 ## Question 3: Grouping
 
@@ -151,11 +204,47 @@ Group the bike rentals by three variables: hour of the day, day of the week, and
 
 ```{r}
 ### My Code here
+# Load necessary libraries
+library(ggplot2)
+library(lubridate)
+library(dplyr)
+
+
+
+# Convert sdate to POSIXct if it's not already
+data$sdate <- as.POSIXct(data$sdate, format="%Y-%m-%d %H:%M:%S")
+
+# Extract discrete date components
+data$day_of_week <- wday(data$sdate, label = TRUE)
+data$hour_of_day <- hour(data$sdate)
+data$client <- as.factor(data$client) # Ensure client type is a factor
+
+# Group by hour of day, day of week, and client type and summarize counts
+grouped_data <- data %>%
+  group_by(hour_of_day, day_of_week, client) %>%
+  summarise(count = n())
+
+# Plot the data
+ggplot(grouped_data, aes(x = hour_of_day, y = count, group = client, color = client)) +
+  geom_line() +
+  facet_wrap(~ day_of_week, ncol = 2) +
+  labs(title = "Bike Rentals by Hour of the Day, Day of the Week, and Client Type",
+       x = "Hour of the Day",
+       y = "Total Number of Rentals") +
+  theme_minimal()
 
 ```
 
 My comments here.....
 
+Hourly Trends:
+
+For both casual and registered clients, there are clear peaks in the early morning and late afternoon/evening hours, likely corresponding to commuting times.
+Registered clients might show more pronounced peaks during typical commute hours (e.g., 8 AM and 5 PM).
+Daily Trends:
+
+Weekend days (Saturday and Sunday) might show a different pattern compared to weekdays, with rentals spread more evenly throughout the day, indicating recreational use.
+Weekdays likely have more pronounced peaks in the morning and evening hours.
 
 ## Question 4: How Far? 
 
